@@ -1,10 +1,18 @@
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, TypeAlias
 
 import httpx
 import jwt
+from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePrivateKey
+from cryptography.hazmat.primitives.asymmetric.ed448 import Ed448PrivateKey
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, PrivateAttr
+
+AllowedPrivateKeys: TypeAlias = (
+    RSAPrivateKey | EllipticCurvePrivateKey | Ed25519PrivateKey | Ed448PrivateKey
+)
 
 
 class AppleMusicClient(BaseModel):
@@ -39,11 +47,11 @@ class AppleMusicClient(BaseModel):
     private_key: str | bytes
     key_id: str
     team_id: str
-    proxies: dict[str, str] | None = None
     max_retries: int = 10
     timeout: float = 10.0
     session_length: int = 12
     root: HttpUrl = Field(default="https://api.music.apple.com/v1/")
+    extra_client_kwargs: dict[str, Any] = Field(default_factory=dict)
 
     _client: httpx.AsyncClient | None = PrivateAttr(default=None)
     _token: str | None = PrivateAttr(default=None)
@@ -51,17 +59,23 @@ class AppleMusicClient(BaseModel):
 
     def __init__(self, **data):
         super().__init__(**data)
+
         self._client = httpx.AsyncClient(
-            proxies=self.proxies,
             timeout=self.timeout,
             transport=httpx.AsyncHTTPTransport(retries=self.max_retries),
+            **self.extra_client_kwargs,
         )
 
-    async def __aenter__(self):
-        return await self._client.__aenter__()
+    @property
+    def httpx_client(self) -> httpx.AsyncClient:
+        assert self._client is not None, "Client not initialized"
+        return self._client
+
+    async def __aenter__(self) -> httpx.AsyncClient:
+        return await self.httpx_client.__aenter__()
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        return await self._client.__aexit__(exc_type, exc_val, exc_tb)
+        return await self.httpx_client.__aexit__(exc_type, exc_val, exc_tb)
 
     def _generate_token(self) -> str:
         self._token_expires_at = datetime.now() + timedelta(hours=self.session_length)
@@ -76,10 +90,16 @@ class AppleMusicClient(BaseModel):
         else:
             private_key = self.private_key
 
+        assert isinstance(
+            private_key, AllowedPrivateKeys | str | bytes
+        ), f"Invalid private key type: {type(private_key)}"
+
         return jwt.encode(payload, private_key, algorithm="ES256", headers=headers)
 
     def _get_token(self) -> str:
-        if not self._token or datetime.now() >= self._token_expires_at:
+        if not self._token or (
+            self._token_expires_at and datetime.now() >= self._token_expires_at
+        ):
             self._token = self._generate_token()
         return self._token
 
@@ -91,7 +111,9 @@ class AppleMusicClient(BaseModel):
         if not url.startswith("http"):
             url = str(self.root) + url
 
-        response = await self._client.request(method, url, headers=headers, **kwargs)
+        response = await self.httpx_client.request(
+            method, url, headers=headers, **kwargs
+        )
         response.raise_for_status()
         return response.json()
 

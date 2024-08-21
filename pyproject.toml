@@ -16,6 +16,7 @@ dev = ["ipython", "pre-commit>=2.21,<4.0", "ruff", "apple-music[tests]"]
 
 tests = [
     "flaky",
+    "pyright",
     "pytest-asyncio>=0.18.2,!=0.22.0,<0.23.0",
     "pytest-env>=0.8,<2.0",
     "pytest-rerunfailures>=10,<14",
@@ -33,6 +34,10 @@ Code = "https://github.com/zzstoatzz/apple-music"
 [build-system]
 requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
+
+[tool.pyright]
+include = ["src"]
+pythonPlatform = "All"
 
 [tool.setuptools_scm]
 write_to = "src/apple_music/_version.py"
