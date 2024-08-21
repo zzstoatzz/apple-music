@@ -1,5 +1,6 @@
-from prefect_pack import parse_as
 from pydantic import BaseModel
+
+from apple_music.utils import parse_as
 
 
 def test_parsing():
