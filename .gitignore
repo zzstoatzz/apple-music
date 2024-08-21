@@ -168,4 +168,4 @@ cython_debug/
 # VS Code
 .vscode/
 
-src/prefect_pack/_version.py
+src/apple_music/_version.py
