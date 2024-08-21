@@ -57,7 +57,7 @@ jobs:
           key: uvcache-${{ runner.os }}-${{ steps.setup_python.outputs.python-version }}-${{ hashFiles('pyproject.toml') }}
 
 
-      - name: Install `prefect-pack`
+      - name: Install package
         run: | 
           pip install -U pip uv
           uv pip install --system ".[tests]"
