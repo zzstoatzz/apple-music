@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+import httpx
 import pytest
 import respx
 from cryptography.hazmat.primitives import serialization
@@ -94,9 +95,7 @@ async def test_error_handling(client):
                 404, json={"errors": [{"status": "404", "title": "Not Found"}]}
             )
         )
-        with pytest.raises(
-            Exception
-        ):  # You might want to be more specific about the exception type
+        with pytest.raises(httpx.HTTPStatusError, match="404"):
             await client.get_resource("999", "songs")
 
 
