@@ -1,6 +1,6 @@
 # apple-music
 
-this is an opinionated rewrite of [`apple-music-python`](https://github.com/mpalazzolo/apple-music-python/tree/master), shoutout to the original author for the inspiration.
+this is an opinionated rewrite of [apple-music-python](https://github.com/mpalazzolo/apple-music-python/tree/master), shoutout to the original author ([@mpalazzolo](https://github.com/mpalazzolo)) for the inspiration.
 
 ## getting started
 
@@ -18,4 +18,4 @@ async with AppleMusicClient(
 see `tests/test_client.py` for more examples
 
 ## TODO
-- write functionality (i.e. create)
+- write functionality (i.e. create playlists and add songs to playlists)
