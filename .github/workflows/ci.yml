@@ -1,4 +1,4 @@
-name: Run Tests
+name: CI
 
 env:
   # enable colored output - see https://github.com/pytest-dev/pytest/issues/7443
@@ -7,35 +7,21 @@ env:
 on:
   push:
     branches: ["main"]
-    paths:
-      - .github/workflows/tests.yml
-      - src/**
-      - tests/**
-      - pyproject.toml
-
   pull_request:
-    paths:
-      - .github/workflows/tests.yml
-      - src**
-      - tests/**
-      - pyproject.toml
-
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  run_tests:
-    name: Run Tests on ${{ matrix.os }} with Python ${{ matrix.python-version }}
-    timeout-minutes: 15
+  static_analysis:
+    timeout-minutes: 1
+
+    runs-on: ubuntu-latest
+
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        python-version: ['3.10', '3.11', '3.12']
-        
-        
-    runs-on: ${{ matrix.os }}
+        python-version: ['3.11', '3.12']
 
     steps:
       - uses: actions/checkout@v4
@@ -60,8 +46,8 @@ jobs:
       - name: Install package
         run: | 
           pip install -U pip uv
-          uv pip install --system ".[tests]"
-      
-      - name: Run tests
-        run: pytest -n auto -vvv
-        if: ${{ !github.event.pull_request.head.repo.fork }}
+          uv pip install --system .
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.0
+
