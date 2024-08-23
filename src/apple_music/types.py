@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 
@@ -38,6 +40,12 @@ class SongData(BaseModel):
     attributes: SongAttributes = Field(
         ..., description="Attributes associated with the song."
     )
+
+    def __getattr__(self, name: str) -> Any:
+        try:
+            return getattr(self.attributes, name)
+        except AttributeError:
+            return getattr(self, name)
 
 
 class SongsResult(BaseModel):

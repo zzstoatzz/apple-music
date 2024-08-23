@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class AuthSettings(BaseSettings):
     model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
-        env_prefix="APPLE_MUSIC_", env_file=".env"
+        env_prefix="APPLE_MUSIC_", env_file=".env", extra="ignore"
     )
 
     private_key_path: Path

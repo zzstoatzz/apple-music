@@ -4,27 +4,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Migrate Spotify Playlists to Apple Music</title>
+    <title>Spotify2Apple</title>
+    <script src="https://js-cdn.music.apple.com/musickit/v1/musickit.js"></script>
+    <link rel="icon" type="image/png" href="/static/spotify2apple.png">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1,
+        h2 {
+            color: #333;
+        }
+
+        #welcome-message {
+            font-size: 1.2em;
+            font-style: italic;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #e9f7ef;
+            border-left: 5px solid #2ecc71;
+        }
+
+        .playlist-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .playlist-column {
+            width: 48%;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, opacity 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #error-message {
+            color: #e74c3c;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Migrate Spotify Playlists to Apple Music</h1>
-
-    <div id="login-container">
-        <button id="spotify-login">Log in with Spotify</button>
-        <button id="apple-login">Log in with Apple Music</button>
+    <div class="container">
+        <h1>Spotify2Apple</h1>
+        <div id="welcome-message"></div>
+        <div id="error-message"></div>
+        <button id="spotify-login">Login to Spotify</button>
+        <button id="apple-login">Login to Apple Music</button>
+        <div class="playlist-container">
+            <div class="playlist-column">
+                <h2>Spotify Playlists</h2>
+                <div id="spotify-playlists"></div>
+            </div>
+            <div class="playlist-column">
+                <h2>Apple Music Playlists</h2>
+                <div id="apple-playlists"></div>
+            </div>
+        </div>
+        <button id="migrate-button" style="display: none;">Migrate Selected Playlists</button>
     </div>
-
-    <div id="playlist-selection" style="display: none;">
-        <h2>Select Spotify Playlists to Migrate</h2>
-        <div id="playlists"></div>
-        <button id="migrate-button">Migrate Selected Playlists</button>
-    </div>
-
-    <div id="error-message" style="color: red;"></div>
-
-    <script src="https://js-cdn.music.apple.com/musickit/v1/musickit.js"></script>
-    <script src="static/js/main.js"></script>
+    <script src="/static/js/main.js" type="module"></script>
 </body>
 
 </html>

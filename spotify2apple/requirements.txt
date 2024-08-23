@@ -1,4 +1,6 @@
 -e .
 fastapi
 jinja2
+logfire
+marvin
 uvicorn
