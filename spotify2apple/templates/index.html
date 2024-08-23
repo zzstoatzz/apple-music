@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migrate Spotify Playlists to Apple Music</title>
+</head>
+
+<body>
+    <h1>Migrate Spotify Playlists to Apple Music</h1>
+
+    <div id="login-container">
+        <button id="spotify-login">Log in with Spotify</button>
+        <button id="apple-login">Log in with Apple Music</button>
+    </div>
+
+    <div id="playlist-selection" style="display: none;">
+        <h2>Select Spotify Playlists to Migrate</h2>
+        <div id="playlists"></div>
+        <button id="migrate-button">Migrate Selected Playlists</button>
+    </div>
+
+    <div id="error-message" style="color: red;"></div>
+
+    <script src="https://js-cdn.music.apple.com/musickit/v1/musickit.js"></script>
+    <script src="static/js/main.js"></script>
+</body>
+
+</html>

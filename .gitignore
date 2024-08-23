@@ -169,3 +169,11 @@ cython_debug/
 .vscode/
 
 src/apple_music/_version.py
+
+# private keys
+*.p8
+*.p12
+*.pem
+*.key
+*.csr
+*.crt

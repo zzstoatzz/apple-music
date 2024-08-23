@@ -9,7 +9,13 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 requires-python = ">=3.10"
-dependencies = ["pydantic>=2.8.0", "httpx", "pyjwt", "cryptography"]
+dependencies = [
+    "cryptography",
+    "httpx",
+    "pydantic>=2.8.0",
+    "pydantic-settings",
+    "pyjwt",
+]
 
 [project.optional-dependencies]
 dev = ["ipython", "pre-commit>=2.21,<4.0", "ruff", "apple-music[tests]"]

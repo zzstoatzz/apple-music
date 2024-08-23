@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
-from typing import Any, TypeAlias
+from pathlib import Path
+from typing import Any, Self, TypeAlias
 
 import httpx
 import jwt
@@ -9,6 +10,8 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, PrivateAttr
+
+from apple_music.types import SearchResponse
 
 AllowedPrivateKeys: TypeAlias = (
     RSAPrivateKey | EllipticCurvePrivateKey | Ed25519PrivateKey | Ed448PrivateKey
@@ -33,7 +36,7 @@ class AppleMusicClient(BaseModel):
             from apple_music import AppleMusicClient
 
             async with AppleMusicClient(
-                private_key="your_private_key",
+                private_key="your_private_key_content_or_path",
                 key_id="your_key_id",
                 team_id="your_team_id"
             ) as client:
@@ -44,14 +47,30 @@ class AppleMusicClient(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    private_key: str | bytes
-    key_id: str
-    team_id: str
-    max_retries: int = 10
-    timeout: float = 10.0
-    session_length: int = 12
-    root: HttpUrl = Field(default="https://api.music.apple.com/v1/")
-    extra_client_kwargs: dict[str, Any] = Field(default_factory=dict)
+    private_key: str | bytes | Path = Field(
+        ..., description="The private key used to sign requests."
+    )
+    key_id: str = Field(..., description="The key ID used to sign requests.")
+    team_id: str = Field(..., description="The team ID used to sign requests.")
+    max_retries: int = Field(
+        10, description="The maximum number of retries for failed requests."
+    )
+    timeout: float = Field(10.0, description="The timeout for requests in seconds.")
+    session_length: int = Field(
+        12,
+        description="The length of time in hours for which the client's token is valid.",
+    )
+    root: HttpUrl = Field(
+        default="https://api.music.apple.com/v1/",
+        description="The root URL for the Apple Music API.",
+    )
+    extra_client_kwargs: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Extra keyword arguments to pass to the httpx client.",
+        examples=[
+            {"proxies": {"https://api.music.apple.com": "http://127.0.0.1:8080"}}
+        ],
+    )
 
     _client: httpx.AsyncClient | None = PrivateAttr(default=None)
     _token: str | None = PrivateAttr(default=None)
@@ -71,11 +90,12 @@ class AppleMusicClient(BaseModel):
         assert self._client is not None, "Client not initialized"
         return self._client
 
-    async def __aenter__(self) -> httpx.AsyncClient:
-        return await self.httpx_client.__aenter__()
+    async def __aenter__(self) -> Self:
+        await self.httpx_client.__aenter__()
+        return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        return await self.httpx_client.__aexit__(exc_type, exc_val, exc_tb)
+        await self.httpx_client.__aexit__(exc_type, exc_val, exc_tb)
 
     def _generate_token(self) -> str:
         self._token_expires_at = datetime.now() + timedelta(hours=self.session_length)
@@ -87,6 +107,10 @@ class AppleMusicClient(BaseModel):
         }
         if isinstance(self.private_key, str):
             private_key = load_pem_private_key(self.private_key.encode(), password=None)
+        elif isinstance(self.private_key, Path):
+            private_key = load_pem_private_key(
+                self.private_key.read_bytes(), password=None
+            )
         else:
             private_key = self.private_key
 
@@ -159,3 +183,44 @@ class AppleMusicClient(BaseModel):
         if resource_ids:
             params["ids"] = ",".join(resource_ids)
         return await self._request("GET", url, params=params)
+
+    ### methods for specific functionalities
+
+    async def search(
+        self,
+        term: str,
+        types: list[str] | None = None,
+        limit: int = 5,
+        offset: int = 0,
+        storefront: str = "us",
+        **kwargs,
+    ) -> SearchResponse:
+        """Search for resources in the Apple Music catalog.
+
+        Args:
+            term (str): The search term.
+            types (list[str], optional): The types of resources to search for. Defaults to ["songs"].
+            limit (int, optional): The maximum number of results to return. Defaults to 5.
+            offset (int, optional): The offset to start the search from. Defaults to 0.
+            storefront (str, optional): The storefront to search in. Defaults to "us".
+            **kwargs: Additional keyword arguments to pass to the request.
+
+        Returns:
+            SearchResponse: The search results.
+        """
+
+        if types is None:
+            types = ["songs"]
+
+        response_data = await self._request(
+            "GET",
+            url=f"catalog/{storefront}/search",
+            params={
+                "term": term,
+                "types": ",".join(types),
+                "limit": limit,
+                "offset": offset,
+                **kwargs,
+            },
+        )
+        return SearchResponse.model_validate(response_data)

@@ -1,0 +1,4 @@
+-e .
+fastapi
+jinja2
+uvicorn
