@@ -1,15 +1,10 @@
 import asyncio
 
-from apple_music import AppleMusicClient
-from apple_music.settings import settings
+from apple_music import get_client
 
 
 async def main(search_term: str = "love"):
-    async with AppleMusicClient(
-        private_key=settings.auth.private_key_path.read_text(),
-        key_id=settings.auth.key_id,
-        team_id=settings.auth.team_id,
-    ) as client:
+    async with get_client() as client:
         print(f"Searching for {search_term!r}...")
         search_response = await client.search(search_term)
 

@@ -1,6 +1,7 @@
--e .
+git+https://github.com/zzstoatzz/apple-music.git@main
 fastapi
 jinja2
-logfire
+logfire[fastapi]
 marvin
+spotipy
 uvicorn

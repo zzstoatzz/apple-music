@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      - POSTGRES_USER=prefect
+      - POSTGRES_PASSWORD=prefect
+      - POSTGRES_DB=prefect
+    ports:
+      - "5432:5432"
+
+  server:
+    image: prefecthq/prefect:3.0.0rc17-python3.12
+    command: prefect server start --host 0.0.0.0 --port 4200
+    ports:
+      - "4200:4200"
+    depends_on:
+      - db
+    environment:
+      - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://prefect:prefect@db:5432/prefect
+
+  api:
+    build:
+      context: ..
+      dockerfile: spotify2apple/Dockerfile
+    command: uvicorn spotify2apple.api:app --host 0.0.0.0 --port 8001
+    ports:
+      - "8001:8001"
+    env_file:
+      - ../.env
+    volumes:
+      - ./secrets/AuthKey_7V69D2378L.p8:/run/secrets/apple_music_pk:ro
+    environment:
+      - APPLE_MUSIC_PRIVATE_KEY=/run/secrets/apple_music_pk
+
+    depends_on:
+      - db
+      - server
+
+secrets:
+  apple_music_pk:
+    external: true
