@@ -17,8 +17,10 @@ from apple_music.settings import settings
 async def lifespan(app: FastAPI):
     """Context manager to ensure the app is closed properly."""
     with logfire.span("Running app", start_time=datetime.datetime.now(datetime.UTC)):
-        yield
-    logfire.info("App closed")
+        try:
+            yield
+        finally:
+            logfire.info("Exiting app")
 
 
 app = FastAPI(lifespan=lifespan)
@@ -33,7 +35,7 @@ logfire.instrument_fastapi(app)
 
 async def get_developer_token() -> str:
     async with AppleMusicClient(
-        private_key=settings.auth.private_key_path.read_text(),
+        private_key=settings.auth.private_key.get_secret_value(),
         key_id=settings.auth.key_id,
         team_id=settings.auth.team_id,
     ) as client:

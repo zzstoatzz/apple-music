@@ -1,7 +1,6 @@
-from pathlib import Path
 from typing import ClassVar
 
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -10,7 +9,7 @@ class AuthSettings(BaseSettings):
         env_prefix="APPLE_MUSIC_", env_file=".env", extra="ignore"
     )
 
-    private_key_path: Path
+    private_key: SecretStr
     key_id: str
     team_id: str
 

@@ -1,6 +1,7 @@
+from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Self, TypeAlias
+from typing import Any, AsyncGenerator, Self, TypeAlias
 
 import httpx
 import jwt
@@ -11,6 +12,7 @@ from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, PrivateAttr
 
+from apple_music.settings import settings
 from apple_music.types import SearchResponse
 
 AllowedPrivateKeys: TypeAlias = (
@@ -224,3 +226,14 @@ class AppleMusicClient(BaseModel):
             },
         )
         return SearchResponse.model_validate(response_data)
+
+
+@asynccontextmanager
+async def get_client() -> AsyncGenerator[AppleMusicClient, None]:
+    """Async context manager to get an Apple Music client."""
+    async with AppleMusicClient(
+        private_key=settings.auth.private_key.get_secret_value(),
+        key_id=settings.auth.key_id,
+        team_id=settings.auth.team_id,
+    ) as client:
+        yield client
